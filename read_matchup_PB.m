@@ -28,16 +28,16 @@ clc
 clearvars
 
 % C2RCC
-InDir='C:\Users\slohrenz\OneDrive - UMASS Dartmouth\Documents\ArcGIS\Projects\PleasantBay\Satellite_matchups\Matchup files\';
-OutDir='C:\Users\slohrenz\OneDrive - UMASS Dartmouth\Documents\ArcGIS\Projects\PleasantBay\Satellite_matchups\';
+InDir='~\Satellite_matchups\Matchup files\';
+OutDir='~\Satellite_matchups\';
 
 % C2X
-% InDir = 'C:\Users\slohrenz\OneDrive - UMASS Dartmouth\Documents\ArcGIS\Projects\PleasantBay\Satellite_matchups\Matchup files\C2X\';
-% OutDir='C:\Users\slohrenz\OneDrive - UMASS Dartmouth\Documents\ArcGIS\Projects\PleasantBay\Satellite_matchups\Matchup files\C2X\';
+% InDir = '~\Satellite_matchups\Matchup files\C2X\';
+% OutDir='~\Satellite_matchups\Matchup files\C2X\';
 
 % L2gen
-% InDir = 'C:\Users\slohrenz\OneDrive - UMASS Dartmouth\Documents\ArcGIS\Projects\PleasantBay\Satellite_matchups\Matchup files\l2gen\';
-% OutDir='C:\Users\slohrenz\OneDrive - UMASS Dartmouth\Documents\ArcGIS\Projects\PleasantBay\Satellite_matchups\Matchup files\l2gen\';
+% InDir = '~\Satellite_matchups\Matchup files\l2gen\';
+% OutDir='~\Satellite_matchups\Matchup files\l2gen\';
 
 % Get list of files
 
