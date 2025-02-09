@@ -28,8 +28,8 @@ clearvars
 close all
 clc
 
-InDir='C:\Users\slohrenz\OneDrive - UMASS Dartmouth\Documents\ArcGIS\Projects\PleasantBay\Satellite_matchups\';
-OutDir='C:\Users\slohrenz\OneDrive - UMASS Dartmouth\Documents\ArcGIS\Projects\PleasantBay\';
+InDir='~\Satellite_matchups\';
+OutDir='~\';
 
 %Load data
 matchup_window = '36h';  % '36h';
@@ -38,7 +38,7 @@ filename=['pb_insitu_sat_match_',matchup_window,'.mat'];
 rand('seed',0); % set random seed so results are reproducible
 
 % Variable flag
-plt_var = 'chl';  %'secchi'; %'chl';  %  'DO';
+plt_var = 'DO';  %'secchi'; %'chl';  %  'DO';
 
 % Save plot flag
 plt_save = 0;

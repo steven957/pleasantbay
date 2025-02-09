@@ -37,19 +37,19 @@ algthm = 'c2rcc';
 switch algthm
     case 'c2rcc'
         % C2RCC
-        inputarray='C:\Users\slohrenz\OneDrive - UMASS Dartmouth\Documents\ArcGIS\Projects\PleasantBay\InSitu_Data\all_pb_dat_2010_2021.mat';  %For evaluating algorithm on single day L3 files
-        matcharray='C:\Users\slohrenz\OneDrive - UMASS Dartmouth\Documents\ArcGIS\Projects\PleasantBay\Satellite_matchups\all_station_matchup.mat';
-        outdir='C:\Users\slohrenz\OneDrive - UMASS Dartmouth\Documents\ArcGIS\Projects\PleasantBay\Satellite_matchups\';
+        inputarray='~\InSitu_Data\all_pb_dat_2010_2021.mat';  %For evaluating algorithm on single day L3 files
+        matcharray='~\Satellite_matchups\all_station_matchup.mat';
+        outdir='~\Satellite_matchups\';
     case 'c2x'
         % C2X
-        inputarray='C:\Users\slohrenz\OneDrive - UMASS Dartmouth\Documents\ArcGIS\Projects\PleasantBay\InSitu_Data\all_pb_dat_2010_2021.mat';  %For evaluating algorithm on single day L3 files
-        matcharray='C:\Users\slohrenz\OneDrive - UMASS Dartmouth\Documents\ArcGIS\Projects\PleasantBay\Satellite_matchups\Matchup files\C2X\all_station_matchup.mat';
-        outdir='C:\Users\slohrenz\OneDrive - UMASS Dartmouth\Documents\ArcGIS\Projects\PleasantBay\Satellite_matchups\Matchup files\C2X\';
+        inputarray='~\InSitu_Data\all_pb_dat_2010_2021.mat';  %For evaluating algorithm on single day L3 files
+        matcharray='~\Satellite_matchups\Matchup files\C2X\all_station_matchup.mat';
+        outdir='~\Satellite_matchups\Matchup files\C2X\';
     case 'l2gen'
         % L2gen
-        inputarray='C:\Users\slohrenz\OneDrive - UMASS Dartmouth\Documents\ArcGIS\Projects\PleasantBay\InSitu_Data\all_pb_dat_2010_2021.mat';  %For evaluating algorithm on single day L3 files
-        matcharray='C:\Users\slohrenz\OneDrive - UMASS Dartmouth\Documents\ArcGIS\Projects\PleasantBay\Satellite_matchups\Matchup files\l2gen\all_station_matchup.mat';
-        outdir='C:\Users\slohrenz\OneDrive - UMASS Dartmouth\Documents\ArcGIS\Projects\PleasantBay\Satellite_matchups\Matchup files\l2gen\';
+        inputarray='~\InSitu_Data\all_pb_dat_2010_2021.mat';  %For evaluating algorithm on single day L3 files
+        matcharray='~\Satellite_matchups\Matchup files\l2gen\all_station_matchup.mat';
+        outdir='~\Satellite_matchups\Matchup files\l2gen\';
 end
 
 all_pb_match=[];
