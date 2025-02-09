@@ -2,12 +2,13 @@
 % Syntax: plot_annual_time_series_pb
 %
 % Script loads satellite matchup data file and finds
-% colocated data within a designated matchup window for
+% colocated data within a designated matchup window for each year of
 % time series over the study period (2013-2022)
 %
 % Inputs:
 %    1) Directory location for satellite matchup file pb_all_sat.mat
 %       file generated with read_matchup_pb.m
+%    2) Precipitation data 
 %
 % Outputs:
 %    1) Plots with annual time series for satellite observations
@@ -23,31 +24,25 @@
 % Website: http://www.umassd.edu/smast/
 % Last revision: 8 Feb 2025
 
-%% ------------- BEGIN CODE --------------
+%% ------------- BEGIN CODE --------------%%Read matchup spreadsheet
 
 clc
 clearvars
-close all
-
 
 %% Load data
 
 % Load satellite matchup data
-InDir1='C:\Users\slohrenz\OneDrive - UMASS Dartmouth\Documents\ArcGIS\Projects\PleasantBay\Satellite_matchups\';
+InDir1='~\Satellite_matchups\';
 filename1='pb_all_sat.mat';
 load([InDir1,filename1]);
 
-% year_range = 2013:2022;
-year_range = 2013:2022;
+% If using RF algorithm for Secchi, apply algorithm to rhow values
+% load([InDir1,'Matchup files\RF\','RF_secchi_36h_Mdl.mat']);
+% load([InDir1,'Matchup files\RF\','RF_chl_36h_Mdl.mat']);
 
-season = 'summer'; %'all';  % 'summer';
-RF_model_flag = 0;  % Switches between RF model (1) and C2RCC (0)
+year_range = 2014:2022;
 
-if RF_model_flag
-    % If using RF algorithm for Secchi, apply algorithm to rhow values
-    load([InDir1,'Matchup files\RF\','RF_chl_36h_Mdl.mat']);
-    load([InDir1,'Matchup files\RF\','RF_secchi_36h_Mdl.mat']);
-end
+season = 'summer';
 
 % Set color order for plot
 C = orderedcolors("gem12");
@@ -57,23 +52,23 @@ colororder(C);
 
 % Plot annual average time-series for each for each station for satellite and in situ data
 
-year_chl_ts = nan(10,21);
-year_kd_ts = nan(10,21);
-year_RF_secchi = nan(10,21);
+year_chl_ts = nan(9,21);
+year_kd_ts = nan(9,21);
+year_RF_secchi = nan(9,21);
 year_sta = cell(21,1);
 
 % year_obs = nan(10,21);
 
 for ista=1:21
-    for iyr=2:length(year_range)
+    for iyr=1:length(year_range)
         switch season
             case 'summer'
                 sta_indx = find(strcmp(pb_all_sat.sat_sta,num2str(ista)) & ...
-                    isbetween(pb_all_sat.sat_date_time,datetime(year_range(iyr),6,1),...
-                     datetime(year_range(iyr),8,eomday(year_range(iyr),8))) & ...
-                     pb_all_sat.sat_date_time~=datetime('02/21/2022','InputFormat','MM/dd/uuuu') & ...
-                     pb_all_sat.sat_date_time~=datetime('04/10/2022','InputFormat','MM/dd/uuuu') & ...
-                     pb_all_sat.sat_date_time~=datetime('07/31/2022','InputFormat','MM/dd/uuuu'));
+                    isbetween(pb_all_sat.sat_date_time,datetime(year_range(iyr),7,1),...
+                     datetime(year_range(iyr),8,eomday(year_range(iyr),9))) & ...
+                     pb_all_sat.sat_date_time~=datetime('2/21/2022') & ...
+                     pb_all_sat.sat_date_time~=datetime('4/10/2022') & ...
+                     pb_all_sat.sat_date_time~=datetime('7/31/2022'));   % Latter lines omit L9
             case 'spring'
                 sta_indx = find(strcmp(pb_all_sat.sat_sta,num2str(ista)) & ...
                     isbetween(pb_all_sat.sat_date_time,datetime(year_range(iyr),3,1),...
@@ -86,38 +81,20 @@ for ista=1:21
                 sta_indx = find(strcmp(pb_all_sat.sat_sta,num2str(ista)) & ...
                     isbetween(pb_all_sat.sat_date_time,datetime(year_range(iyr),12,1),...
                      datetime(year_range(iyr),2,eomday(year_range(iyr),2))));
-            case 'all'
-                sta_indx = find(strcmp(pb_all_sat.sat_sta,num2str(ista)) & ...
-                    isbetween(pb_all_sat.sat_date_time,datetime(year_range(iyr),1,1),...
-                     datetime(year_range(iyr),12,eomday(year_range(iyr),12))));
         end                
         
         year_chl_ts(iyr,ista) = mean(pb_all_sat.sat_chl(sta_indx));
         year_kd_ts(iyr,ista) = mean(pb_all_sat.sat_kd489(sta_indx));
         
-        % Compare Landsat 8 and 9
-        % sat_tab = table(pb_all_sat.sat_date_time(sta_indx),pb_all_sat.sat_sta(sta_indx),pb_all_sat.sat_chl(sta_indx),...
-        %     pb_all_sat.sat_kd489(sta_indx),'VariableNames',["sat_date","sat_sta","sat_chl",...
-        %     "sat_kd489"]);
-        % if ista == 1 && iyr == 1
-        %     sat_comp_tab = sat_tab;
-        % else
-        %     sat_comp_tab = [sat_comp_tab;sat_tab];
-        % end
-
         % RF
         rhow_tab = table(pb_all_sat.sat_rhow_1(sta_indx),pb_all_sat.sat_rhow_2(sta_indx),...
             pb_all_sat.sat_rhow_3(sta_indx),pb_all_sat.sat_rhow_4(sta_indx),...
             pb_all_sat.sat_rhow_5(sta_indx),'VariableNames',["sat_rhow_440","sat_rhow_480",...
             "sat_rhow_560","sat_rhow_655","sat_rhow_865"]);
 
-        if RF_model_flag
-            RF_secchi = predict(secchiMdl,rhow_tab);
-            RF_chl = predict(ChlMdl,rhow_tab);
+        % RF_secchi = predict(Mdl,rhow_tab);
 
-            year_RF_secchi(iyr,ista) = mean(RF_secchi);
-            year_RF_chl(iyr,ista) = mean(RF_chl);
-        end
+        % year_RF_secchi(iyr,ista) = mean(RF_secchi);
 
         if strcmp(pb_all_sat.sat_sta(sta_indx),'2') | strcmp(pb_all_sat.sat_sta(sta_indx),'7') | ...
                 strcmp(pb_all_sat.sat_sta(sta_indx),'18')
@@ -128,7 +105,12 @@ for ista=1:21
     year_sta(ista) = pb_all_sat.sat_sta(sta_indx(1));
 end
 
-% writetable(sat_comp_tab,[InDir1,'L8_vs_L9_comparison.xlsx'],"FileType","spreadsheet");
+% Load in situ data and calcuate yearly means for each station
+
+load([InDir1,'all_pb_monthly_ts_dat.mat'],"all_pb_monthly_ts_data");
+
+summer_indx = find(all_pb_monthly_ts_data.Month>=7 & all_pb_monthly_ts_data.Month<=9 & all_pb_monthly_ts_data.Year~=2013);
+insitu_means = groupsummary(all_pb_monthly_ts_data(summer_indx,:),["Station","Year"],"mean");
 
 %% Plot results for chl
 % 
@@ -139,45 +121,33 @@ scrsz = get(groot,'ScreenSize');
 set(f1,'Position',[scrsz(4).*.3 scrsz(3).*.07 scrsz(3).*.45 scrsz(4).*.75])
 set(0,'DefaultFigureVisible','on');  %Suppresses figure visibility during processing - set to on if desired
 
-if RF_model_flag
-    year_chl_ts = year_RF_chl;
-end
-
-hp1=plot(year_range(2:end)',year_chl_ts(2:end,:),'-','MarkerSize',8,'LineWidth',1.5);
+% hp1=plot(year_range',year_chl_ts,'-','MarkerSize',8,'LineWidth',1.5);
 box on
 hold on
 set(gca,'Fontsize',15,'Fontname','Arial','YLim',[0 18]);
 
-for ista = 1:21
+for ista = [1,3:6,8:17,19:21]
     % htxt = text(year_range',year_chl_ts(:,ista),num2str(ista),'FontSize',12,'Color',C(ista,:),...
     %     'VerticalAlignment','bottom');
-    yr_value = 2018; % + round(ista./4,0);
-    if ismember(ista,[1,3,4,8,12,21])
-        htxt = text(yr_value-1,year_chl_ts(yr_value-1-2012,ista),num2str(ista),'FontSize',12,'Color',C(ista,:),...
-            'VerticalAlignment','middle','FontWeight','bold');
-    elseif ismember(ista,[15,20])
-        htxt = text(yr_value-2,year_chl_ts(yr_value-2-2012,ista),num2str(ista),'FontSize',12,'Color',C(ista,:),...
-            'VerticalAlignment','middle','FontWeight','bold');
-    else
-        htxt = text(yr_value,year_chl_ts(yr_value-2012,ista),num2str(ista),'FontSize',12,'Color',C(ista,:),...
-            'VerticalAlignment','middle','FontWeight','bold');
-    end
+    hp1(ista)=plot(year_range',insitu_means(insitu_means.Station==ista,:).mean_insitu_chl_mean,':o',...
+        'MarkerSize',10,'LineWidth',1.5,'Color',C(ista,:));
+    % htxt = text(year_range',insitu_means(insitu_means.Station==ista,:).mean_insitu_chl_mean,...
+    %     num2str(ista),'FontSize',12,'Color',C(ista,:),...
+    %     'VerticalAlignment','bottom');
 end
 
 % yearlines = [2015,0;2015,10;nan,nan;2018,0;2018,10;nan,nan;2021,0;2021,10];
 % hyearlines = plot(yearlines(:,1),yearlines(:,2),':k','LineWidth',1.5);
 
-hyeararrows(1) = annotation('textarrow',[0.325 0.325], [0.90 0.82],'LineWidth',1.5,'Color','k');
+set(gca,'XLim',[2013.5,2022.5],'YLim',[0,19]);
+
+hyeararrows(1) = annotation('textarrow',[0.345 0.345], [0.57 0.5],'LineWidth',1.5,'Color','k');
 % hyeararrows(2) = annotation('textarrow',[0.517 0.517], [0.91 0.81],'LineWidth',1.5,'Color','k');
-hyeararrows(3) = annotation('textarrow',[0.711 0.711], [0.789 0.72],'LineWidth',1.5,'Color','k');
+hyeararrows(3) = annotation('textarrow',[0.691 0.691], [0.57 0.5],'LineWidth',1.5,'Color','k');
 
 xlabel('Year','Fontsize',16,'Fontname','Arial','Fontweight','Bold')
-
-if RF_model_flag
-    ylabel('Landsat 8 RF-Estimated Chlorophyll (mg m^{-3})', 'Fontsize',16,'Fontname','Arial','Fontweight','Bold');
-else
-    ylabel('Landsat 8 C2RCC conc\_chl (mg m^{-3})', 'Fontsize',16,'Fontname','Arial','Fontweight','Bold');
-end
+% ylabel('Landsat 8 C2RCC conc\_chl (mg m^{-3})', 'Fontsize',16,'Fontname','Arial','Fontweight','Bold');
+ylabel('In-situ Chlorophyll (mg m^{-3})', 'Fontsize',16,'Fontname','Arial','Fontweight','Bold');
 
 % Prepare legend entries for each station
 sta_char = num2str([1,3:6,8:17,19:21]');
@@ -188,17 +158,21 @@ hleg1 = legend(hp1([1,3:6,8:17,19:21]')',sta_char,'NumColumns',6,'Location','Nor
 
 set(f1,'Position',[293.4444  198.3333  763.1111  618.6667]);
 
-if RF_model_flag
-    print([InDir1,'RF_chl_annual_time_series_',season,'.tif'],'-r600','-dtiff');
-else
-    print([InDir1,'c2rcc_chl_annual_time_series_',season,'.tif'],'-r600','-dtiff');
-end
+print([InDir1,'chl_annual_time_series_insitu_',season,'.tif'],'-r600','-dtiff');
+% print([InDir1,'c2rcc_chl_annual_time_series_',season,'.tif'],'-r300','-dtiff');
 
 % Evaluate correlation of conc_chl versus year
 % First rearrange data 
-chl_year_data = [repmat(year_range(2:end)',21,1),reshape(year_chl_ts(2:end,:),9.*21,1)];
-chl_year_data = chl_year_data(~isnan(chl_year_data(:,2)),:);
-[R_chl,P_chl] = corrcoef(chl_year_data);
+chl_year_data = [repmat(year_range',21,1),reshape(year_chl_ts,9.*21,1)];
+%chl_year_data = chl_year_data(~isnan(chl_year_data(:,2)),:);
+[R_chl,P_chl] = corrcoef(chl_year_data,'Rows','complete');
+
+insitu_chl_year_data = [repmat(year_range',21,1),insitu_means.mean_insitu_chl_mean(insitu_means.Year~=2013)];
+%insitu_chl_year_data = insitu_chl_year_data(~isnan(insitu_chl_year_data(:,2)),:);
+[R_insitu_chl,P_insitu_chl] = corrcoef(insitu_chl_year_data,'Rows','complete');
+
+% Correlation between in-situ and satellite obs
+[R_insitu_vs_sat_chl,P_insitu_vs_sat_chl] = corrcoef([insitu_chl_year_data(:,2),chl_year_data(:,2)],'Rows','complete');
 
 %% Plot results for Secchi
 % 
@@ -215,83 +189,77 @@ C2 = orderedcolors("glow12");
 C = [C;C2];
 colororder(C);
 
-if RF_model_flag
-    year_kd_ts = 1./year_RF_secchi;
-end
+% RF Secchi
+% hp2=plot(year_range',year_RF_secchi,'-','MarkerSize',8,'LineWidth',1.5); %,'Color',C);
+% hold on
 
 % C2RCC Secchi
-hp2=plot(year_range',1./year_kd_ts,'-','MarkerSize',8,'LineWidth',1.5); %,'Color',C);
+% hp2=plot(year_range',1./year_kd_ts,'-','MarkerSize',8,'LineWidth',1.5); %,'Color',C);
 hold on
-set(gca,'Fontsize',15,'Fontname','Arial','YLim',[0.6 5.5]);
+box on
+set(gca,'Fontsize',15,'Fontname','Arial');
 
-for ista = 1:21
-    yincr = -0.06;
+for ista = [1,3:6,8:17,19:21]
     % htxt = text(year_range',1./year_kd_ts(:,ista),num2str(ista),'FontSize',12,'Color',C(ista,:),...
     %     'VerticalAlignment','bottom');
-    if RF_model_flag
-        yr_value = 2020; % + round(ista./4,0);
-        htxt = text(yr_value,1./year_kd_ts(yr_value - 2012,ista),num2str(ista),'FontSize',12,'Color',C(ista,:),...
-            'VerticalAlignment','middle');
-    else
-        yr_value = 2019; % + round(ista./4,0);
-        if ismember(ista,[5,8,10,12,13,15,16,17,21])
-            htxt = text(yr_value,1./year_kd_ts(yr_value - 2012,ista),num2str(ista),'FontSize',12,'Color',C(ista,:),...
-                'VerticalAlignment','middle','FontWeight','bold');
-        elseif ismember(ista,[1,4,11,14])
-            htxt = text(yr_value + 1,1./year_kd_ts(yr_value + 1 - 2012,ista),num2str(ista),'FontSize',12,'Color',C(ista,:),...
-                'VerticalAlignment','middle','FontWeight','bold');
-        else
-            htxt = text(yr_value-1,1./year_kd_ts(yr_value - 1 - 2012,ista),num2str(ista),'FontSize',12,'Color',C(ista,:),...
-                'VerticalAlignment','middle','FontWeight','bold');
-        end            
-    end
+    hp2(ista)=plot(year_range',insitu_means(insitu_means.Station==ista,:).mean_insitu_secchi_mean,':o',...
+        'MarkerSize',10,'LineWidth',1.5,'Color',C(ista,:));
+    % htxt = text(year_range',insitu_means(insitu_means.Station==ista,:).mean_insitu_secchi_mean,...
+    %     num2str(ista),'FontSize',12,'Color',C(ista,:),...
+    %     'VerticalAlignment','bottom');
 end
 
-hyeararrows(1) = annotation('textarrow',[0.325 0.325], [0.65 0.55],'LineWidth',1.5,'Color','k');
+set(gca,'XLim',[2013.5,2022.5],'YLim',[0,7]);
+
+hyeararrows(1) = annotation('textarrow',[0.345 0.345], [0.57 0.5],'LineWidth',1.5,'Color','k');
 % hyeararrows(2) = annotation('textarrow',[0.517 0.517], [0.91 0.81],'LineWidth',1.5,'Color','k');
-hyeararrows(3) = annotation('textarrow',[0.711 0.711], [0.85 0.75],'LineWidth',1.5,'Color','k');
+hyeararrows(3) = annotation('textarrow',[0.691 0.691], [0.57 0.5],'LineWidth',1.5,'Color','k');
 
 xlabel('Year','Fontsize',16,'Fontname','Arial','Fontweight','Bold')
 
-if RF_model_flag
-    % RF Secchi
-    ylabel('Landsat 8 RF-Estimated Secchi Depth (m)', 'Fontsize',16,'Fontname','Arial','Fontweight','Bold');
-else
-    % C2RCC Secchi
-    ylabel('Landsat 8 C2RCC 1/kd489 (m)', 'Fontsize',16,'Fontname','Arial','Fontweight','Bold');
-end
+% RF Secchi
+% ylabel('Landsat 8 RF-Estimated Secchi Depth (m)', 'Fontsize',16,'Fontname','Arial','Fontweight','Bold');
+
+% C2RCC Secchi
+% ylabel('Landsat 8 C2RCC 1/kd489 (m)', 'Fontsize',16,'Fontname','Arial','Fontweight','Bold');
+ylabel('In-situ Secchi Depth (m)', 'Fontsize',16,'Fontname','Arial','Fontweight','Bold');
+% title('In Situ vs Satellite Chlorophyll-A', 'Fontsize',20,'Fontname','Arial','Fontweight','Bold');
 
 % Prepare legend entries for each station
 % sta_char = num2str([1,3:6,8:17,19:21]');
-% hleg1 = legend(hp2([1,3:6,8:17,19:21]')',sta_char,'NumColumns',7,'Location','Southoutside');
+% hleg2 = legend(hp2([1,3:6,8:17,19:21]')',sta_char,'NumColumns',7,'Location','Southoutside');
 % leg_pos = get(hleg1,'Position');
 % leg_pos(1) = leg_pos(1) + 0.1;
 % set(hleg1,"Position",leg_pos);
 
 set(f2,'Position',[293.4444  198.3333  763.1111  618.6667]);
 
-if RF_model_flag
-    print([InDir1,'RF_secchi_annual_time_series_',season,'.tif'],'-r600','-dtiff');
-else
-    print([InDir1,'1overkd489_annual_time_series_',season,'.tif'],'-r600','-dtiff');
-end
+print([InDir1,'secchi_annual_time_series_insitu_',season,'.tif'],'-r600','-dtiff');
+% print([InDir1,'1overkd489_annual_time_series_',season,'.tif'],'-r300','-dtiff');
 
 % Evaluate correlation of 1/kd489 versus year
 % First rearrange data 
-% inversekd_year_data = [repmat(year_range(2:end)',21,1),reshape(1./year_kd_ts(2:end,:),9.*21,1)];
+inversekd_year_data = [repmat(year_range',21,1),reshape(1./year_kd_ts,9.*21,1)];
 % inversekd_year_data = inversekd_year_data(~isnan(inversekd_year_data(:,2)),:);
-% [R_1overkd,P_1overkd] = corrcoef(inversekd_year_data);
+[R_1overkd,P_1overkd] = corrcoef(inversekd_year_data,'Rows','complete');
+
+insitu_secchi_year_data = [repmat(year_range',21,1),insitu_means.mean_insitu_secchi_mean(insitu_means.Year~=2013)];
+% insitu_secchi_year_data = insitu_secchi_year_data(~isnan(insitu_secchi_year_data(:,2)),:);
+[R_insitu_secchi,P_insitu_secchi] = corrcoef(insitu_secchi_year_data,'Rows','complete');
+
+% Correlation between in-situ and satellite obs
+[R_insitu_vs_sat_secchi,P_insitu_vs_sat_secchi] = corrcoef([insitu_secchi_year_data(:,2),...
+    inversekd_year_data(:,2)],'Rows','complete');
 
 % First rearrange data 
-if RF_model_flag
-    RF_secchi_year_data = [repmat(year_range(2:end)',21,1),reshape(year_RF_secchi(2:end,:),9.*21,1)];
-    RF_secchi_year_data = RF_secchi_year_data(~isnan(RF_secchi_year_data(:,2)),:);
-    [R_RF_secchi,P_RF_secchi] = corrcoef(RF_secchi_year_data);
-end
-
+% RF_secchi_year_data = [repmat(year_range(2:end)',21,1),reshape(year_RF_secchi(2:end,:),9.*21,1)];
+% RF_secchi_year_data = RF_secchi_year_data(~isnan(RF_secchi_year_data(:,2)),:);
+% [R_RF_secchi,P_RF_secchi] = corrcoef(RF_secchi_year_data);
+% 
 %% Plot annual time series for precipitation
 % 
 % Load precipitation data from spreadsheet
+% https://data.capecodtimes.com/weather-data/plymouth-county-massachusetts/25023/2013-03-01/table/
 
 precip_table = readtable([InDir1,'..\','plymouth_county_weather_data_2013-2024.xlsx']);
 
@@ -308,8 +276,8 @@ C2 = orderedcolors("glow12");
 C = [C;C2];
 
 % Plot annual time series for each station for satellite and in situ data for each station and month
-plt_dat = zeros(10,1);
-for iyr = 2:length(year_range)
+plt_dat = zeros(9,1);
+for iyr = 1:length(year_range)
     switch season
         case 'spring'
             dat_indx = find((contains(precip_table.Month,'April') | contains(precip_table.Month,'March') | ...
@@ -330,15 +298,15 @@ xlabel('Year','Fontsize',16,'Fontname','Arial','Fontweight','Bold')
 ylabel('Precipation, Plymouth County, MA (cm)', 'Fontsize',16,'Fontname','Arial','Fontweight','Bold');
 % title('In Situ vs Satellite Chlorophyll-A', 'Fontsize',20,'Fontname','Arial','Fontweight','Bold');
 
-hyeararrows(1) = annotation('textarrow',[0.3465 0.3465], [0.75 0.65],'LineWidth',1.5,'Color','k');
+hyeararrows(1) = annotation('textarrow',[0.3465 0.3465], [0.95 0.85],'LineWidth',1.5,'Color','k');
 % hyeararrows(2) = annotation('textarrow',[0.517 0.517], [0.91 0.81],'LineWidth',1.5,'Color','k');
-hyeararrows(3) = annotation('textarrow',[0.69 0.69], [0.75 0.65],'LineWidth',1.5,'Color','k');
+hyeararrows(3) = annotation('textarrow',[0.69 0.69], [0.95 0.85],'LineWidth',1.5,'Color','k');
 
 print([InDir1,'plymouth_precipitation_annual_time_series.tif'],'-r300','-dtiff');
 
 % Evaluate correlation of precipitation versus year
 % First rearrange data 
-precip_year_data = [year_range(2:end)',plt_dat(2:end)];
+precip_year_data = [year_range',plt_dat(2:end)];
 [R_precip,P_precip] = corrcoef(precip_year_data);
 
 
